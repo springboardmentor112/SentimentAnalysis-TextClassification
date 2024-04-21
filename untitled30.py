@@ -32,7 +32,7 @@ print(df)
 
 def remove_words_with_numbers(text):
   return ' '.join(word for word in text.split() if not any(c.isdigit() for c in word))
-df['c_content'] = df['c_content'].apply(remove_words_with_numbers)
+df['content'] = df['content'].apply(remove_words_with_numbers)
 print(df)
 
 def remove_extra_spaces(text):
