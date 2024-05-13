@@ -33,6 +33,7 @@ ICQ=I Seek you
 ILU=I Love You
 IMHO=In My Honest/Humble Opinion
 IMO=In My Opinion
+IM=I am
 IOW=In Other Words
 IRL=In Real Life
 KISS=Keep It Simple, Stupid
