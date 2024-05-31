@@ -1,0 +1,9 @@
+model,best_score,best_params
+DecisionTree,0.4548203974863812,{'max_depth': 30}
+SVM,0.944825577342389,{'C': 10}
+KNN,0.7344903480214591,{'n_neighbors': 3}
+RandomForest,0.9301040127761084,{'n_estimators': 200}
+NaiveBayes,0.9123600516233509,"{'alpha': 1, 'fit_prior': False}"
+LightGBM,0.9275565264135377,{'learning_rate': 0.1}
+LogisticRegression,0.9385658080295783,{'C': 10}
+XGBoost,0.9347235160989328,"{'learning_rate': 1, 'n_estimators': 200}"

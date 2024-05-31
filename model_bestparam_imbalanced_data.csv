@@ -1,0 +1,6 @@
+model,best_score,best_params
+DecisionTree,0.42699652777777775,"{'criterion': 'gini', 'max_depth': 30}"
+RandomForest,0.8800347222222221,{'n_estimators': 200}
+LightGBM,0.8313368055555557,{'learning_rate': 0.1}
+XGBoost,0.8835069444444444,"{'learning_rate': 1, 'n_estimators': 100}"
+AdaBoost,0.33350694444444445,"{'algorithm': 'SAMME', 'learning_rate': 1, 'n_estimators': 200}"
