@@ -1,5 +1,5 @@
 ## TEXT CLASSIFICATION PROJECT
-- JupyterNoteBook - [Text_Classification.ipynb](https://github.com/springboardmentor112/SentimentAnalysis-TextClassification/blob/Lakshita/.ipynb_checkpoints/Text_Classification-checkpoint.ipynb))
+- JupyterNoteBook - [Text_Classification.ipynb](https://github.com/springboardmentor112/SentimentAnalysis-TextClassification/blob/Lakshita/.ipynb_checkpoints/Text_Classification-checkpoint.ipynb)
 -  Presentation - [Text_Classification_On_Sentiment_Dataset.pptx](https://github.com/springboardmentor112/SentimentAnalysis-TextClassification/blob/Lakshita/Text_Classification_On_Sentiment_Dataset.pptx)
 -  Report - [report_textclassification.docx](https://github.com/springboardmentor112/SentimentAnalysis-TextClassification/blob/Lakshita/report_textclassification.docx)
 -  OutputFiles
