@@ -57,11 +57,10 @@ def upload_file():
 
         results.to_csv(filepath, index=False)
         
-        emotion_counts = {model_name: results[model_name].value_counts() for model_name in models}
+        emotion_counts = {model_name: results[model_name].value_counts(normalize=True) * 100 for model_name in models}
         
         # Prepare colors for each emotion
         emotion_colors_list = {model_name: [emotion_colors[emotion] for emotion in results[model_name].unique()] for model_name in models}
-
         return render_template('results.html', tables=results.to_html(classes='table table-striped table-bordered', index=False), filename=file.filename, emotion_counts=emotion_counts, emotion_colors_list=emotion_colors_list)
 
 @app.route('/download/<filename>')
