@@ -1,14 +1,9 @@
-from flask import Flask, request, render_template, redirect, url_for, send_file
+from flask import Flask, request, render_template, send_from_directory
 import joblib
 import pandas as pd
 import os
 
 app = Flask(__name__)
-app.config['UPLOAD_FOLDER'] = 'uploads'
-
-# Ensure the upload folder exists
-if not os.path.exists(app.config['UPLOAD_FOLDER']):
-    os.makedirs(app.config['UPLOAD_FOLDER'])
 
 # Load the models
 model_files = ['Logistic Regression', 'XGBoosting', 'Voting Classifier', 'Stacking Classifier']
@@ -43,42 +38,35 @@ def predict():
     return render_template('index.html', input_text=input_text, predictions=predictions, prediction_colors=prediction_colors)
 
 @app.route('/upload', methods=['POST'])
-def upload():
+def upload_file():
     if 'file' not in request.files:
-        return redirect(request.url)
-    
+        return "No file part"
     file = request.files['file']
     if file.filename == '':
-        return redirect(request.url)
-    
-    if file and file.filename.endswith('.csv'):
-        filepath = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
+        return "No selected file"
+    if file:
+        filepath = os.path.join("uploads", file.filename)
+        os.makedirs(os.path.dirname(filepath), exist_ok=True)
         file.save(filepath)
-        return redirect(url_for('results', filename=file.filename))
-    
-    return redirect(request.url)
+        
+        data = pd.read_csv(filepath)
+        results = data.copy()
+        for model_name, model in models.items():
+            predictions = model.predict(vectorizer.transform(data['reviews']))
+            results[model_name] = [emotions[pred] for pred in predictions]
 
-@app.route('/results/<filename>')
-def results(filename):
-    filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-    df = pd.read_csv(filepath)
-    input_texts = df['reviews']
-    input_vectorized = vectorizer.transform(input_texts)
-    
-    for model_name, model in models.items():
-        df[model_name] = [emotions[model.predict(vectorizer.transform([text]))[0]] for text in input_texts]
-    
-    result_filepath = os.path.join(app.config['UPLOAD_FOLDER'], f'result_{filename}')
-    df.to_csv(result_filepath, index=False)
-    
-    emotion_counts = {model_name: df[model_name].value_counts(normalize=True) * 100 for model_name in models.keys()}
-    
-    return render_template('results.html', tables=[df.head(10).to_html(classes='data', index=False)], titles=df.columns.values, emotion_counts=emotion_counts, filename=f'result_{filename}')
+        results.to_csv(filepath, index=False)
+        
+        emotion_counts = {model_name: results[model_name].value_counts() for model_name in models}
+        
+        # Prepare colors for each emotion
+        emotion_colors_list = {model_name: [emotion_colors[emotion] for emotion in results[model_name].unique()] for model_name in models}
+
+        return render_template('results.html', tables=results.to_html(classes='table table-striped table-bordered', index=False), filename=file.filename, emotion_counts=emotion_counts, emotion_colors_list=emotion_colors_list)
 
 @app.route('/download/<filename>')
 def download_file(filename):
-    filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-    return send_file(filepath, as_attachment=True)
+    return send_from_directory('uploads', filename)
 
 if __name__ == '__main__':
     app.run(debug=True)

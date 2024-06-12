@@ -21,6 +21,10 @@
             max-height: 300px;
             overflow-y: auto;
         }
+        .table th, .table td {
+            text-align: center;
+            vertical-align: middle;
+        }
     </style>
 </head>
 <body>
@@ -38,9 +42,9 @@
         </div>
 
         <div class="card mt-4">
-            <div class="card-header bg-info text-white">
+            <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
                 <h3>Emotion Distribution</h3>
-                <select class="form-control" id="modelDropdown" style="width: auto; display: inline-block; margin-left: 20px;" onchange="changeChart()">
+                <select class="form-control" id="modelDropdown" style="width: auto;" onchange="changeChart()">
                     <option value="all" selected>All Models</option>
                     {% for model_name in emotion_counts.keys() %}
                         <option value="{{ model_name }}">{{ model_name }}</option>
@@ -50,7 +54,7 @@
             <div class="card-body">
                 <div class="row">
                     {% for model_name, emotion_count in emotion_counts.items() %}
-                        <div class="col-md-6" id="{{ model_name }}ChartContainer">
+                        <div class="col-md-6 chart-container" id="{{ model_name }}ChartContainer">
                             <h4>{{ model_name }}</h4>
                             <canvas id="{{ model_name }}Chart"></canvas>
                             <script>
@@ -59,7 +63,7 @@
                                     labels: {{ emotion_count.index.tolist() | tojson }},
                                     datasets: [{
                                         data: {{ emotion_count.values.tolist() | tojson }},
-                                        backgroundColor: ['blue', 'green', 'pink', 'red', 'purple', 'orange']
+                                        backgroundColor: {{ emotion_colors_list[model_name] | tojson }}
                                     }]
                                 };
                                 var myPieChart = new Chart(ctx, {
@@ -89,11 +93,9 @@
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     <script>
-        var colors = ['blue', 'green', 'pink', 'red', 'purple', 'orange'];
-
         function changeChart() {
             var selectedModel = document.getElementById("modelDropdown").value;
-            var chartContainers = document.querySelectorAll(".col-md-6");
+            var chartContainers = document.querySelectorAll(".chart-container");
             
             chartContainers.forEach(function(container) {
                 if (selectedModel === "all" || container.id === selectedModel + "ChartContainer") {
@@ -104,31 +106,8 @@
             });
         }
 
-        // Create pie charts
-        {% for model_name, emotion_count in emotion_counts.items() %}
-            var ctx = document.getElementById('{{ model_name }}Chart').getContext('2d');
-            var data = {
-                labels: {{ emotion_count.index.tolist() | tojson }},
-                datasets: [{
-                    data: {{ emotion_count.values.tolist() | tojson }},
-                    backgroundColor: colors
-                }]
-            };
-            var myPieChart = new Chart(ctx, {
-                type: 'pie',
-                data: data,
-                options: {
-                    title: {
-                        display: true,
-                        text: '{{ model_name }} Emotion Distribution'
-                    },
-                    legend: {
-                        display: true,
-                        position: 'bottom'
-                    }
-                }
-            });
-        {% endfor %}
+        // Initialize chart visibility
+        changeChart();
     </script>
 </body>
 </html>
