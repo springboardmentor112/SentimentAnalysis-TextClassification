@@ -68,8 +68,20 @@
                             <ul class="list-group">
                                 {% for model_name, prediction in predictions.items() %}
                                     <li class="list-group-item d-flex justify-content-between align-items-center">
-                                        {{ model_name }}:
-                                        <span class="badge badge-custom badge-pill" style="background-color: {{ prediction_colors[model_name] }}">{{ prediction }}</span>
+                                        <div>
+                                            <strong>{{ model_name }}:</strong>
+                                            <span class="badge badge-custom badge-pill" style="background-color: {{ prediction_colors[model_name] }}">{{ prediction }}</span>
+                                        </div>
+                                        <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#{{ model_name | replace(' ', '') }}Metrics" aria-expanded="false" aria-controls="{{ model_name | replace(' ', '') }}Metrics">
+                                            Metrics
+                                        </button>
+                                        <div class="collapse" id="{{ model_name | replace(' ', '') }}Metrics">
+                                            <ul class="list-group mt-2">
+                                                {% for metric, value in models[model_name]['metrics'].items() %}
+                                                    <li class="list-group-item">{{ metric }}: {{ value }}%</li>
+                                                {% endfor %}
+                                            </ul>
+                                        </div>
                                     </li>
                                 {% endfor %}
                             </ul>
