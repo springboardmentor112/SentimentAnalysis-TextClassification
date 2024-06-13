@@ -44,11 +44,25 @@
         <div class="card mt-4">
             <div class="card-header bg-info text-white">
                 <h3>Emotion Distribution</h3>
+                <div class="d-flex justify-content-between">
+                    <select id="select-model" class="form-control mr-2">
+                        <option value="all">Show all</option>
+                        {% for model_name in emotion_counts.keys() %}
+                            <option value="{{ model_name }}">{{ model_name }}</option>
+                        {% endfor %}
+                    </select>
+                    <select id="sort-metrics" class="form-control">
+                        <option value="">Sort by metric</option>
+                        {% for metric in metrics %}
+                            <option value="{{ metric }}">{{ metric }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
             </div>
             <div class="card-body">
-                <div class="row">
+                <div id="charts-container" class="row">
                     {% for model_name, emotion_count in emotion_counts.items() %}
-                        <div class="col-md-6">
+                        <div class="col-md-6 chart-card" data-model="{{ model_name }}">
                             <div class="card">
                                 <div class="card-header">
                                     <h4>{{ model_name }}</h4>
@@ -81,10 +95,6 @@
                                                 title: {
                                                     display: true,
                                                     text: '{{ model_name }} Emotion Distribution'
-                                                },
-                                                legend: {
-                                                    display: true,
-                                                    position: 'bottom'
                                                 }
                                             }
                                         });
@@ -102,5 +112,35 @@
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        document.getElementById('select-model').addEventListener('change', function () {
+            let selectedModel = this.value;
+            let charts = document.querySelectorAll('.chart-card');
+            charts.forEach(function (chart) {
+                if (selectedModel === 'all' || chart.dataset.model === selectedModel) {
+                    chart.style.display = 'block';
+                } else {
+                    chart.style.display = 'none';
+                }
+            });
+        });
+
+        document.getElementById('sort-metrics').addEventListener('change', function () {
+            let selectedMetric = this.value;
+            let chartsContainer = document.getElementById('charts-container');
+            let charts = Array.from(chartsContainer.getElementsByClassName('chart-card'));
+            
+            charts.sort(function (a, b) {
+                let aValue = parseFloat(a.querySelector(`#${a.dataset.model.replace(' ', '')}Metrics .list-group-item:contains(${selectedMetric})`).innerText.split(': ')[1].replace('%', ''));
+                let bValue = parseFloat(b.querySelector(`#${b.dataset.model.replace(' ', '')}Metrics .list-group-item:contains(${selectedMetric})`).innerText.split(': ')[1].replace('%', ''));
+                return bValue - aValue;
+            });
+
+            chartsContainer.innerHTML = '';
+            charts.forEach(function (item) {
+                chartsContainer.appendChild(item);
+            });
+        });
+    </script>
 </body>
 </html>

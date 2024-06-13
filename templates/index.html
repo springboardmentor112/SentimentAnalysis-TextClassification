@@ -63,9 +63,15 @@
                     <div class="card">
                         <div class="card-header bg-info text-white">
                             <h3>Predictions:</h3>
+                            <select id="sort-metrics" class="form-control">
+                                <option value="">Sort by metric</option>
+                                {% for metric in metrics %}
+                                    <option value="{{ metric }}">{{ metric }}</option>
+                                {% endfor %}
+                            </select>
                         </div>
                         <div class="card-body">
-                            <ul class="list-group">
+                            <ul id="predictions-list" class="list-group">
                                 {% for model_name, prediction in predictions.items() %}
                                     <li class="list-group-item d-flex justify-content-between align-items-center">
                                         <div>
@@ -96,5 +102,23 @@
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        document.getElementById('sort-metrics').addEventListener('change', function () {
+            let selectedMetric = this.value;
+            let predictionsList = document.getElementById('predictions-list');
+            let predictions = Array.from(predictionsList.getElementsByTagName('li'));
+            
+            predictions.sort(function (a, b) {
+                let aValue = parseFloat(a.querySelector(`#${a.id.replace(' ', '')}Metrics .list-group-item:contains(${selectedMetric})`).innerText.split(': ')[1].replace('%', ''));
+                let bValue = parseFloat(b.querySelector(`#${b.id.replace(' ', '')}Metrics .list-group-item:contains(${selectedMetric})`).innerText.split(': ')[1].replace('%', ''));
+                return bValue - aValue;
+            });
+
+            predictionsList.innerHTML = '';
+            predictions.forEach(function (item) {
+                predictionsList.appendChild(item);
+            });
+        });
+    </script>
 </body>
 </html>
