@@ -72,7 +72,7 @@
                                     <div class="collapse" id="{{ model_name | replace(' ', '') }}Metrics">
                                         <ul class="list-group mt-2">
                                             {% for metric, value in models[model_name]['metrics'].items() %}
-                                                <li class="list-group-item">{{ metric }}: {{ value }}%</li>
+                                                <li class="list-group-item" data-metric="{{ metric }}" data-value="{{ value }}">{{ metric }}: {{ value }}%</li>
                                             {% endfor %}
                                         </ul>
                                     </div>
@@ -114,10 +114,11 @@
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     <script>
         document.getElementById('select-model').addEventListener('change', function () {
-            let selectedModel = this.value;
-            let charts = document.querySelectorAll('.chart-card');
+            console.log("Test1")
+            var selectedModel = this.value;
+            var charts = document.querySelectorAll('.chart-card');
             charts.forEach(function (chart) {
-                if (selectedModel === 'all' || chart.dataset.model === selectedModel) {
+                if (selectedModel === 'all' || chart.getAttribute('data-model') === selectedModel) {
                     chart.style.display = 'block';
                 } else {
                     chart.style.display = 'none';
@@ -129,16 +130,16 @@
             let selectedMetric = this.value;
             let chartsContainer = document.getElementById('charts-container');
             let charts = Array.from(chartsContainer.getElementsByClassName('chart-card'));
-            
+
             charts.sort(function (a, b) {
-                let aValue = parseFloat(a.querySelector(`#${a.dataset.model.replace(' ', '')}Metrics .list-group-item:contains(${selectedMetric})`).innerText.split(': ')[1].replace('%', ''));
-                let bValue = parseFloat(b.querySelector(`#${b.dataset.model.replace(' ', '')}Metrics .list-group-item:contains(${selectedMetric})`).innerText.split(': ')[1].replace('%', ''));
+                let aValue = parseFloat(a.querySelector(`.list-group-item[data-metric="${selectedMetric}"]`).getAttribute('data-value'));
+                let bValue = parseFloat(b.querySelector(`.list-group-item[data-metric="${selectedMetric}"]`).getAttribute('data-value'));
                 return bValue - aValue;
             });
 
             chartsContainer.innerHTML = '';
-            charts.forEach(function (item) {
-                chartsContainer.appendChild(item);
+            charts.forEach(function (chart) {
+                chartsContainer.appendChild(chart);
             });
         });
     </script>

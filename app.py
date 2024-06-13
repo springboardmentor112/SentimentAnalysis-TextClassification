@@ -10,6 +10,10 @@ model_files = ['Logistic Regression', 'XGBoosting', 'Voting Classifier', 'Stacki
 emotions = {0: 'Sadness', 1: 'Joy', 2: 'Love', 3: 'Anger', 4: 'Fear', 5: 'Surprise'}
 models = {file: {'model': joblib.load(f'{file}.pkl')} for file in model_files}
 
+# Metric to be considered
+considered_metrics = ['Accuracy', 'Precision', 'Recall', 'F1_Score']
+
+
 # Metrics for models
 metrics = {'Logistic Regression':{'Accuracy': 85.03, 'Precision': 85.01, 'Recall': 85.03, 'F1_Score': 85.00}, 
            'XGBoosting':{'Accuracy': 86.36, 'Precision': 86.63, 'Recall': 86.36, 'F1_Score': 86.45}, 
@@ -45,7 +49,7 @@ def predict():
     predictions = {model_name: emotions[model['model'].predict(input_vectorized)[0]] for model_name, model in models.items()}
     prediction_colors = {model_name: emotion_colors[prediction] for model_name, prediction in predictions.items()}
     
-    return render_template('index.html', input_text=input_text, predictions=predictions, prediction_colors=prediction_colors, models=models)
+    return render_template('index.html', input_text=input_text, predictions=predictions, prediction_colors=prediction_colors, models=models, metrics=considered_metrics)
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
@@ -71,7 +75,7 @@ def upload_file():
         
         # Prepare colors for each emotion
         emotion_colors_list = {model_name: [emotion_colors[emotion] for emotion in results[model_name].unique()] for model_name in models}
-        return render_template('results.html', tables=results.to_html(classes='table table-striped table-bordered', index=False), filename=file.filename, emotion_counts=emotion_counts, emotion_colors_list=emotion_colors_list, models=models)
+        return render_template('results.html', tables=results.to_html(classes='table table-striped table-bordered', index=False), filename=file.filename, emotion_counts=emotion_counts, emotion_colors_list=emotion_colors_list, models=models, metrics=considered_metrics)
 
 @app.route('/download/<filename>')
 def download_file(filename):
