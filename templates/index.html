@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text Classification</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            padding-top: 50px;
+        }
+        .container {
+            max-width: 900px;
+        }
+        .card {
+            margin-top: 20px;
+        }
+        .badge-custom {
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h2>Classifying Emotions In Text Data</h2>
+            </div>
+            <div class="card-body">
+                <form action="/predict" method="post">
+                    <div class="form-group">
+                        <label for="text">Enter a sentence:</label>
+                        <input type="text" id="text" name="text" class="form-control" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block">Classify</button>
+                </form>
+                <hr>
+                <form action="/upload" method="post" enctype="multipart/form-data">
+                    <div class="form-group">
+                        <label for="file">Upload CSV file with reviews:</label>
+                        <input type="file" id="file" name="file" class="form-control-file" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block">Upload</button>
+                </form>
+            </div>
+        </div>
+
+        {% if input_text %}
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header bg-success text-white">
+                            <h3>Input Text:</h3>
+                        </div>
+                        <div class="card-body">
+                            <p>{{ input_text }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header bg-info text-white">
+                            <h3>Predictions:</h3>
+                            <select id="sort-metrics" class="form-control">
+                                <option value="">Sort by metric</option>
+                                {% for metric in metrics %}
+                                    <option value="{{ metric }}">{{ metric }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="card-body">
+                            <ul id="predictions-list" class="list-group">
+                                {% for model_name, prediction in predictions.items() %}
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <strong>{{ model_name }}:</strong>
+                                            <span class="badge badge-custom badge-pill" style="background-color: {{ prediction_colors[model_name] }}">{{ prediction }}</span>
+                                        </div>
+                                        <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#{{ model_name | replace(' ', '') }}Metrics" aria-expanded="false" aria-controls="{{ model_name | replace(' ', '') }}Metrics">
+                                            Metrics
+                                        </button>
+                                        <div class="collapse" id="{{ model_name | replace(' ', '') }}Metrics">
+                                            <ul class="list-group mt-2">
+                                                {% for metric, value in models[model_name]['metrics'].items() %}
+                                                    <li class="list-group-item" data-metric="{{ metric }}" data-value="{{ value }}">{{ metric }}: {{ value }}%</li>
+                                                {% endfor %}
+                                            </ul>
+                                        </div>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Bootstrap JS and dependencies -->
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        document.getElementById('sort-metrics').addEventListener('change', function () {
+            let selectedMetric = this.value;
+            console.log(`Selected Metric: ${selectedMetric}`);
+            let predictionsList = document.getElementById('predictions-list');
+            let predictions = Array.from(predictionsList.getElementsByTagName('li'));
+
+            predictions.forEach(function (item) {
+                let metricItem = item.querySelector(`.list-group-item[data-metric="${selectedMetric}"]`);
+                let modelName = item.querySelector('strong');
+                if (modelName) {
+                    console.log(`Model: ${modelName.innerText}, Metric Value: ${metricItem ? metricItem.getAttribute('data-value') : 'N/A'}`);
+                } else {
+                    console.log('Model name not found.');
+                }
+            });
+
+            predictions.sort(function (a, b) {
+                let aValue = a.querySelector(`.list-group-item[data-metric="${selectedMetric}"]`);
+                let bValue = b.querySelector(`.list-group-item[data-metric="${selectedMetric}"]`);
+                aValue = aValue ? parseFloat(aValue.getAttribute('data-value')) : -Infinity;
+                bValue = bValue ? parseFloat(bValue.getAttribute('data-value')) : -Infinity;
+                return bValue - aValue;
+            });
+            console.log(predictions)
+
+            predictionsList.innerHTML = '';
+            predictions.slice(0, 4).forEach(function (item) {
+                predictionsList.appendChild(item);
+            });
+        });
+    </script>
+</body>
+</html>

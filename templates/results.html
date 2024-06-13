@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Results</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            padding-top: 50px;
+        }
+        .container {
+            max-width: 900px;
+        }
+        .card {
+            margin-top: 20px;
+        }
+        .table-wrapper {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .table th, .table td {
+            text-align: center;
+            vertical-align: middle;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h2>Results</h2>
+            </div>
+            <div class="card-body">
+                <div class="table-wrapper">
+                    {{ tables|safe }}
+                </div>
+                <a href="{{ url_for('download_file', filename=filename) }}" class="btn btn-success mt-3">Download Results</a>
+            </div>
+        </div>
+
+        <div class="card mt-4">
+            <div class="card-header bg-info text-white">
+                <h3>Emotion Distribution</h3>
+                <div class="d-flex justify-content-between">
+                    <select id="select-model" class="form-control mr-2">
+                        <option value="all">Show all</option>
+                        {% for model_name in emotion_counts.keys() %}
+                            <option value="{{ model_name }}">{{ model_name }}</option>
+                        {% endfor %}
+                    </select>
+                    <select id="sort-metrics" class="form-control">
+                        <option value="">Sort by metric</option>
+                        {% for metric in metrics %}
+                            <option value="{{ metric }}">{{ metric }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <div class="card-body">
+                <div id="charts-container" class="row">
+                    {% for model_name, emotion_count in emotion_counts.items() %}
+                        <div class="col-md-6 chart-card" data-model="{{ model_name }}">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h4>{{ model_name }}</h4>
+                                    <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#{{ model_name | replace(' ', '') }}Metrics" aria-expanded="false" aria-controls="{{ model_name | replace(' ', '') }}Metrics">
+                                        Metrics
+                                    </button>
+                                    <div class="collapse" id="{{ model_name | replace(' ', '') }}Metrics">
+                                        <ul class="list-group mt-2">
+                                            {% for metric, value in models[model_name]['metrics'].items() %}
+                                                <li class="list-group-item" data-metric="{{ metric }}" data-value="{{ value }}">{{ metric }}: {{ value }}%</li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <canvas id="{{ model_name }}Chart"></canvas>
+                                    <script>
+                                        var ctx = document.getElementById('{{ model_name }}Chart').getContext('2d');
+                                        var data = {
+                                            labels: {{ emotion_count.index.tolist() | tojson }},
+                                            datasets: [{
+                                                data: {{ emotion_count.values.tolist() | tojson }},
+                                                backgroundColor: {{ emotion_colors_list[model_name] | tojson }}
+                                            }]
+                                        };
+                                        var myPieChart = new Chart(ctx, {
+                                            type: 'pie',
+                                            data: data,
+                                            options: {
+                                                title: {
+                                                    display: true,
+                                                    text: '{{ model_name }} Emotion Distribution'
+                                                }
+                                            }
+                                        });
+                                    </script>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS and dependencies -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        document.getElementById('select-model').addEventListener('change', function () {
+            console.log("Test1")
+            var selectedModel = this.value;
+            var charts = document.querySelectorAll('.chart-card');
+            charts.forEach(function (chart) {
+                if (selectedModel === 'all' || chart.getAttribute('data-model') === selectedModel) {
+                    chart.style.display = 'block';
+                } else {
+                    chart.style.display = 'none';
+                }
+            });
+        });
+
+        document.getElementById('sort-metrics').addEventListener('change', function () {
+            let selectedMetric = this.value;
+            let chartsContainer = document.getElementById('charts-container');
+            let charts = Array.from(chartsContainer.getElementsByClassName('chart-card'));
+
+            charts.sort(function (a, b) {
+                let aValue = parseFloat(a.querySelector(`.list-group-item[data-metric="${selectedMetric}"]`).getAttribute('data-value'));
+                let bValue = parseFloat(b.querySelector(`.list-group-item[data-metric="${selectedMetric}"]`).getAttribute('data-value'));
+                return bValue - aValue;
+            });
+
+            chartsContainer.innerHTML = '';
+            charts.forEach(function (chart) {
+                chartsContainer.appendChild(chart);
+            });
+        });
+    </script>
+</body>
+</html>
